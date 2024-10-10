@@ -12,16 +12,55 @@ import { SpriteText } from '../text/sprite-text'
 import { Sprite } from '~/sprite'
 import { resources, ResourceType, type Resource } from '~/resources'
 import { Vector2 } from '~~/vector2'
+import { GameLoop } from '~/game-loop'
+
+type MainOptions = GameObjectOptions & {
+  canvas?: HTMLCanvasElement 
+}
 
 export class Main extends GameObject {
   public input = new Input()
   public camera = new Camera()
   public level?: Level
   public inventory = new Inventory()
+  public gameLoop: GameLoop 
+  public canvas?: HTMLCanvasElement
+  public canvasContext?: CanvasRenderingContext2D 
 
-  constructor(options: GameObjectOptions) {
+  constructor(options: MainOptions) {
     super(options)
+    this.canvas = options.canvas
+   
+    this.canvasContext = this.canvas?.getContext('2d')!
+    this.gameLoop = new GameLoop(this.update.bind(this), this.render.bind(this))
   }
+
+  public start() {
+    this.drawBackground(this.canvasContext!)
+
+    this.gameLoop.start()
+  }
+
+  
+// Establish update and draw loops
+public update(deltaTime: number)  {
+  this.stepEntry(deltaTime)
+  this.input.update()
+}
+
+public render() {
+  if (!this.canvasContext || !this.canvas) return
+ this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height)
+  this.drawBackground(this.canvasContext)
+
+  this.canvasContext.save()
+  if (this.camera) {
+    this.canvasContext?.translate(this.camera.position.x, this.camera.position.y)
+  }
+  this.drawObjects(this.canvasContext)
+  this.canvasContext?.restore()
+  this.drawForeground(this.canvasContext)
+}
 
   public override ready() {
     this.addChild(this.inventory)
@@ -63,11 +102,14 @@ export class Main extends GameObject {
     if (this.level) this.level.destroy()
       
     const id = events.on('MainFadeOut', this, () => {
+      alert('MainFadeOut')
+      this.root?.gameLoop
       this.level = level
       this.addChild(level)
-      events.unsubscribe(id)
+      events.unsubscribe('MainFadeOut', id)
     })
-    this.fadeOut(5000)
+    this.fadeOut(3000)
+    console.log('setLevel')
   }
 
   private fadeOut(duration: number) {
@@ -80,7 +122,7 @@ export class Main extends GameObject {
     const id = events.on('SoundFadeOutAll', this, () => {
       this.removeChild(black)
       events.emit('MainFadeOut')
-      events.unsubscribe(id)
+      events.unsubscribe('MainFadeOut', id)
     })
     Sound.fadeOutAll(duration)
   }

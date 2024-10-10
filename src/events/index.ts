@@ -28,9 +28,15 @@ class Events {
     return this.index
   }
 
-  public unsubscribe(caller: any) {
+  public unsubscribe(eventName: string, caller: any) {
+    this.handlers = this.handlers.filter((handler) => handler.caller !== caller && handler.eventName !== eventName)
+  }
+
+  public unsubscribeAll( caller: any) {
     this.handlers = this.handlers.filter((handler) => handler.caller !== caller)
   }
+
+
   public off(id: number) {
     this.handlers = this.handlers.filter((handler) => handler.id !== id)
   }

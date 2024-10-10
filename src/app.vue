@@ -14,41 +14,19 @@ import { Sound } from './sound'
 
 // Grabbing the canvas to draw to
 const gameCanvas = ref<HTMLCanvasElement>()
-const canvasContext = ref<CanvasRenderingContext2D>()
 
-const mainScene = new Main({
-  position: new Vector2(0, 0),
-})
+let mainScene: Main
 
 
-// Establish update and draw loops
-const update = (deltaTime: number) => {
-  mainScene.stepEntry(deltaTime)
-  mainScene.input.update()
-}
-
-const render = () => {
-  if (!canvasContext.value || !gameCanvas.value) return
-  canvasContext.value.clearRect(0, 0, gameCanvas.value.width, gameCanvas.value.height)
-  mainScene.drawBackground(canvasContext.value)
-
-  canvasContext.value.save()
-  if (mainScene.camera) {
-    canvasContext.value?.translate(mainScene.camera.position.x, mainScene.camera.position.y)
-  }
-  mainScene.drawObjects(canvasContext.value)
-  canvasContext.value?.restore()
-  mainScene.drawForeground(canvasContext.value)
-}
-
-// Start the game!
-const gameLoop = new GameLoop(update, render)
 
 onMounted(() => {
+  alert('App.onMounted')
   Sound.stopAll()
-  canvasContext.value = gameCanvas.value?.getContext('2d')!
-  if (!gameCanvas.value) return
-  if (!canvasContext.value) return
+  mainScene = new Main({
+    canvas: gameCanvas.value,
+    position: new Vector2(0, 0),
+  })
+
   events.on('ResourceAdded', resources, (resource) => {
     console.log(`Added resource: ${JSON.stringify(resource)}`)
   })
@@ -65,9 +43,8 @@ onMounted(() => {
       root: mainScene
     })) 
   
-    mainScene.drawBackground(canvasContext.value!)
   
-   gameLoop.start()
+    mainScene.start()
   })
 
   resources.addMany([

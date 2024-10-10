@@ -104,7 +104,7 @@ export class GameObject {
 
   public removeChild(child: GameObject) {
     //console.log('Removing child', child)
-    events.unsubscribe(child)
+    events.unsubscribeAll(child)
     this.children = this.children.filter(c => c !== child)
     child.parent = undefined
   }

@@ -48,7 +48,9 @@ export class Sound {
       sound.fadeOut(duration)
     })
     setTimeout(() => {
+      alert('Emitting SoundFAdeOutAll event')
       events.emit('SoundFadeOutAll');
+      
     }, duration); 
   }
 
